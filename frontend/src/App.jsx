@@ -7,6 +7,7 @@ import SearchResults from './pages/SearchResult.jsx';
 import AddPlace from './pages/AddPlace.jsx';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
+import PlaceDetails from './pages/PlaceDetails.jsx';
 
 function PrivateRoute({ children }) {
   const user = useAuth();
@@ -22,9 +23,16 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+
+        {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Listings */}
         <Route path="/search" element={<SearchResults />} />
+        <Route path="/listing/:id" element={<PlaceDetails />} />
+
+        {/* Add place (you can protect this if needed) */}
         <Route path="/add-place" element={<AddPlace />} />
       </Routes>
     </Router>

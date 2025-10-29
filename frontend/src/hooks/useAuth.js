@@ -1,20 +1,13 @@
 import { useEffect, useState } from "react";
 
+
 export function useAuth() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Invalid JSON in localStorage. Clearing it...");
-        localStorage.removeItem("user"); // 👈 clears the bad value
-      }
-    }
-  }, []);
-
-  return user;
+  const raw = localStorage.getItem("user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // fallback if legacy plain string exists
+    return raw;
+  }
 }
