@@ -36,9 +36,10 @@ public class PlaceController {
         ));
     }
 
+    // Allow optional ?ownerEmail=... to return only that user's posts
     @GetMapping
-    public ResponseEntity<List<Place>> all() {
-        return ResponseEntity.ok(placeService.list());
+    public ResponseEntity<List<Place>> all(@RequestParam(required = false) String ownerEmail) {
+        return ResponseEntity.ok(placeService.listByOwnerEmail(ownerEmail));
     }
 
     @GetMapping("/{id}")

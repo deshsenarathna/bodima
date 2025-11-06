@@ -1,4 +1,4 @@
-export const dummyPlaces = [
+{/*export const dummyPlaces = [
   {
     id: 1,
     title: "Cozy Room Near University",
@@ -111,4 +111,4 @@ export const dummyPlaces = [
     ownerPhone: "+94 72 333 4455",
     createdAt: "2025-04-08T12:45:00Z",
   },
-];
+];*/}

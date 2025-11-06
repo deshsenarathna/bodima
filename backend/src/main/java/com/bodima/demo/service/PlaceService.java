@@ -1,7 +1,6 @@
 package com.bodima.demo.service;
 
 import com.bodima.demo.entity.Place;
-import com.bodima.demo.entity.PlaceImage;
 import com.bodima.demo.repositary.PlaceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,17 +20,10 @@ public class PlaceService {
     }
 
     public Place createPlaceWithImages(
-            String title,
-            String city,
-            Integer capacity,
-            Integer pricePerMonth,
-            String description,
-            String address,
-            String ownerEmail,
-            String ownerPhone,
+            String title, String city, Integer capacity, Integer pricePerMonth,
+            String description, String address, String ownerEmail, String ownerPhone,
             MultipartFile[] images
     ) throws Exception {
-
         if (!Files.exists(UPLOAD_DIR)) Files.createDirectories(UPLOAD_DIR);
 
         Place place = new Place();
@@ -41,7 +33,7 @@ public class PlaceService {
         place.setPricePerMonth(pricePerMonth);
         place.setDescription(description);
         place.setAddress(address);
-        place.setOwnerEmail(ownerEmail);
+        place.setOwnerEmail(ownerEmail != null ? ownerEmail.trim() : null);
         place.setOwnerPhone(ownerPhone);
 
         if (images != null) {
@@ -59,7 +51,7 @@ public class PlaceService {
                 }
                 String url = "/uploads/" + stored;
 
-                PlaceImage img = new PlaceImage();
+                var img = new com.bodima.demo.entity.PlaceImage();
                 img.setOriginalFilename(original);
                 img.setUrl(url);
                 place.addImage(img);
@@ -71,6 +63,11 @@ public class PlaceService {
 
     public List<Place> list() {
         return placeRepository.findAll();
+    }
+
+    public List<Place> listByOwnerEmail(String ownerEmail) {
+        if (ownerEmail == null || ownerEmail.isBlank()) return placeRepository.findAll();
+        return placeRepository.findByOwnerEmailIgnoreCase(ownerEmail.trim());
     }
 
     public Place get(Long id) {

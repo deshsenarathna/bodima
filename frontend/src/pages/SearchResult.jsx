@@ -1,91 +1,103 @@
-import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { listPlaces } from "../services/placeService";
-import { useAuth } from "../hooks/useAuth";
+import { resolveImageUrl } from "../utils/imageURL.JS";
+import { useAuth} from "../hooks/useAuth.js";
 
 export default function SearchResults() {
   const user = useAuth();
-  const myEmail = typeof user === "string" ? user : user?.email || "";
-
+  const myEmail = ((typeof user === "string" ? user : user?.email) || "")
+    .trim()
+    .toLowerCase();
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // ✅ Get search query parameters from URL
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const searchCity = (params.get("city") || "").trim().toLowerCase();
+  const searchPeople = Number(params.get("people") || 1);
+
+  // ✅ Fetch all places once
   useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    listPlaces()
-      .then((data) => {
-        if (!isMounted) return;
-        setPlaces(Array.isArray(data) ? data : []);
-      })
-      .catch((e) => {
-        if (!isMounted) return;
-        setError(e.message || "Failed to load listings");
-      })
-      .finally(() => isMounted && setLoading(false));
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  if (!myEmail) return;
+  let alive = true;
+  setLoading(true);
+  listPlaces(myEmail)
+    .then((data) => alive && setPlaces(Array.isArray(data) ? data : []))
+    .catch((e) => alive && setError(e.message || "Failed to load listings"))
+    .finally(() => alive && setLoading(false));
+  return () => { alive = false; };
+}, [myEmail]);
 
-  // Filter to only show posts for the logged-in email (case-insensitive)
-  const myPosts = useMemo(() => {
-    if (!myEmail) return [];
-    const me = myEmail.toLowerCase();
-    return places.filter((p) => (p.ownerEmail || "").toLowerCase() === me);
-  }, [places, myEmail]);
 
-  if (!myEmail) {
-    return (
-      <div className="p-8 bg-gray-50 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-gray-700 mb-3">
-              Please log in to view your listings.
-            </p>
-            <Link
-              to="/login"
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-            >
-              Go to Login
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ✅ Normalize image URLs and other fields
+  const normalized = useMemo(() => {
+    return (places || []).map((p) => {
+      const first =
+        p.imageUrls?.[0] ??
+        p.images?.[0]?.url ??
+        "";
+      return { ...p, firstImageUrl: resolveImageUrl(first) };
+    });
+  }, [places]);
 
-  if (loading) return <div className="p-8">Loading your listings...</div>;
+  // ✅ Filter based on city and capacity
+  const filteredPlaces = useMemo(() => {
+    let results = normalized;
+
+    if (searchCity) {
+      results = results.filter((p) =>
+        (p.city || "").toLowerCase().includes(searchCity)
+      );
+    }
+
+    if (searchPeople > 0) {
+      results = results.filter(
+        (p) => Number(p.capacity || 0) >= searchPeople
+      );
+    }
+
+    return results;
+  }, [normalized, searchCity, searchPeople]);
+
+  // ✅ Loading & Error handling
+  if (loading) return <div className="p-8">Loading listings...</div>;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
+  // ✅ Render filtered listings
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6">My Listings</h2>
+        <h2 className="text-2xl font-semibold mb-6">
+          {searchCity
+            ? `Places in ${searchCity.charAt(0).toUpperCase() + searchCity.slice(1)}`
+            : "All Places"}
+        </h2>
 
-        {myPosts.length === 0 ? (
+        {filteredPlaces.length === 0 ? (
           <div className="rounded-xl border bg-white p-8 text-center text-gray-500">
-            You haven’t posted any listings yet.
+            No listings found for your search.
             <div className="mt-4">
               <Link
-                to="/add-place"
+                to="/"
                 className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               >
-                Make Post
+                Go Back Home
               </Link>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {myPosts.map((place) => (
+            {filteredPlaces.map((place) => (
               <div
                 key={place.id}
                 className="bg-white border rounded-2xl shadow-sm hover:shadow-lg transition p-4 flex flex-col"
               >
                 <img
                   src={
-                    (place.imageUrls && place.imageUrls[0]) ||
+                    place.firstImageUrl ||
                     "https://via.placeholder.com/800x450?text=No+Image"
                   }
                   alt={place.title}

@@ -34,11 +34,15 @@ async function readOnce(res) {
 }
 
 // NEW: export listPlaces so SearchResult.jsx can import it
-export const listPlaces = async () => {
-  const res = await fetch(API_URL);
-  const data = await readOnce(res);
-  return Array.isArray(data) ? data : [];
+export async function listPlaces(ownerEmail) {
+  const url = ownerEmail
+    ? `http://localhost:8080/api/places?ownerEmail=${encodeURIComponent(ownerEmail)}`
+    : `http://localhost:8080/api/places`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch places");
+  return await res.json();
 };
+
 
 // Optional: fetch a single place by id for the details page
 export const getPlace = async (id) => {
