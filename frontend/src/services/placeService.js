@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:8080/api/places';
+const API_URL = 'http://localhost:9090/api/places';
 
 // Your working createPlace: read once via res.text(), then attempt JSON.parse
 export const createPlace = async (formData) => {
@@ -33,15 +33,16 @@ async function readOnce(res) {
   }
 }
 
-// NEW: export listPlaces so SearchResult.jsx can import it
+// List places (uses shared API_URL and readOnce helper)
 export async function listPlaces(ownerEmail) {
   const url = ownerEmail
-    ? `http://localhost:8080/api/places?ownerEmail=${encodeURIComponent(ownerEmail)}`
-    : `http://localhost:8080/api/places`;
+    ? `${API_URL}?ownerEmail=${encodeURIComponent(ownerEmail)}`
+    : API_URL;
+
   const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch places");
-  return await res.json();
-};
+  // Use the shared readOnce helper so errors and JSON parsing are handled consistently
+  return await readOnce(res);
+}
 
 
 // Optional: fetch a single place by id for the details page
@@ -61,8 +62,9 @@ export const updatePlace = async (id, jsonBody) => {
   return readOnce(res);
 };
 
-export const deletePlace = async (id) => {
-  const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-  const data = await readOnce(res);
-  return data;
-};
+ // ✅ Delete handler
+ export async function deletePlace(id) {
+  const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete place");
+  return true;
+}

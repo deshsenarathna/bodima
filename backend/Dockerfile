@@ -20,7 +20,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Expose port
-EXPOSE 8080
+EXPOSE 9090
 
 # Run the jar
 ENTRYPOINT ["java", "-jar", "target/demo-0.0.1-SNAPSHOT.jar"]

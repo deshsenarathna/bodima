@@ -46,4 +46,30 @@ public class PlaceController {
     public ResponseEntity<Place> one(@PathVariable Long id) {
         return ResponseEntity.ok(placeService.get(id));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Place> updatePlace(
+            @PathVariable Long id,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Integer capacity,
+            @RequestParam(required = false) Integer pricePerMonth,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String ownerEmail,
+            @RequestParam(required = false) String ownerPhone,
+            @RequestParam(name = "images", required = false) MultipartFile[] images
+    ) throws Exception {
+        return ResponseEntity.ok(placeService.updatePlace(
+                id, title, city, capacity, pricePerMonth, description, address, ownerEmail, ownerPhone, images
+        ));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
+        placeService.deletePlace(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
+

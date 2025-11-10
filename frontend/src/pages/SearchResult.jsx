@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { listPlaces } from "../services/placeService";
+import { listPlaces,deletePlace } from "../services/placeService";
 import { resolveImageUrl } from "../utils/imageURL.JS";
-import { useAuth} from "../hooks/useAuth.js";
+import { useAuth } from "../hooks/useAuth.js";
+import { Edit, Trash2, Eye } from "lucide-react"; // ✅ Icon imports
+
 
 export default function SearchResults() {
   const user = useAuth();
@@ -21,24 +23,22 @@ export default function SearchResults() {
 
   // ✅ Fetch all places once
   useEffect(() => {
-  if (!myEmail) return;
-  let alive = true;
-  setLoading(true);
-  listPlaces(myEmail)
-    .then((data) => alive && setPlaces(Array.isArray(data) ? data : []))
-    .catch((e) => alive && setError(e.message || "Failed to load listings"))
-    .finally(() => alive && setLoading(false));
-  return () => { alive = false; };
-}, [myEmail]);
-
+    if (!myEmail) return;
+    let alive = true;
+    setLoading(true);
+    listPlaces(myEmail)
+      .then((data) => alive && setPlaces(Array.isArray(data) ? data : []))
+      .catch((e) => alive && setError(e.message || "Failed to load listings"))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, [myEmail]);
 
   // ✅ Normalize image URLs and other fields
   const normalized = useMemo(() => {
     return (places || []).map((p) => {
-      const first =
-        p.imageUrls?.[0] ??
-        p.images?.[0]?.url ??
-        "";
+      const first = p.imageUrls?.[0] ?? p.images?.[0]?.url ?? "";
       return { ...p, firstImageUrl: resolveImageUrl(first) };
     });
   }, [places]);
@@ -54,13 +54,23 @@ export default function SearchResults() {
     }
 
     if (searchPeople > 0) {
-      results = results.filter(
-        (p) => Number(p.capacity || 0) >= searchPeople
-      );
+      results = results.filter((p) => Number(p.capacity || 0) >= searchPeople);
     }
 
     return results;
   }, [normalized, searchCity, searchPeople]);
+
+   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await deletePlace(id); // ← calling backend from service
+      setPlaces((prev) => prev.filter((p) => p.id !== id)); // update UI
+    } catch (err) {
+      alert("Failed to delete: " + err.message);
+    }
+  };
+
+ 
 
   // ✅ Loading & Error handling
   if (loading) return <div className="p-8">Loading listings...</div>;
@@ -72,7 +82,9 @@ export default function SearchResults() {
       <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl font-semibold mb-6">
           {searchCity
-            ? `Places in ${searchCity.charAt(0).toUpperCase() + searchCity.slice(1)}`
+            ? `Places in ${
+                searchCity.charAt(0).toUpperCase() + searchCity.slice(1)
+              }`
             : "All Places"}
         </h2>
 
@@ -111,12 +123,39 @@ export default function SearchResults() {
                 <p className="mt-1 font-semibold text-blue-600">
                   Rs {Number(place.pricePerMonth || 0).toLocaleString()}/month
                 </p>
-                <Link
-                  to={`/listing/${place.id}`}
-                  className="mt-3 bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 text-center"
-                >
-                  View Details
-                </Link>
+
+                {/* ✅ Action buttons (icons only) */}
+                <div className="mt-3 flex justify-between items-center">
+                  {/* View button */}
+                  <Link
+                    to={`/listing/${place.id}`}
+                    className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition"
+                    title="View details"
+                  >
+                    <Eye size={18} />
+                  </Link>
+
+                  {/* Only show Edit/Delete for owner */}
+                  {place.ownerEmail?.toLowerCase() === myEmail && (
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/edit-place/${place.id}`}
+                        className="p-2 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-600 hover:text-white transition"
+                        title="Edit post"
+                      >
+                        <Edit size={18} />
+                      </Link>
+
+                      <button
+                        onClick={() => handleDelete(place.id)}
+                        className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition"
+                        title="Delete post"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
