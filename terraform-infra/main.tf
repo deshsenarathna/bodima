@@ -28,16 +28,23 @@ resource "aws_ecr_repository" "app_repo" {
 }
 
 resource "aws_db_instance" "mysql_db" {
-  identifier         = "bodima-mysql"
-  engine             = "mysql"
-  instance_class     = "db.t3.micro"
-  allocated_storage  = 20
-  db_name            = "bodima_db"
-  username           = "admin"
-  password           = "Admin200142"
-  skip_final_snapshot = true
-  publicly_accessible = false
+  identifier              = "bodima-mysql"
+  engine                  = "mysql"
+  engine_version          = "8.4.7"
+  instance_class          = "db.t3.micro"
+
+  allocated_storage       = 400
+  max_allocated_storage   = 1000
+  storage_encrypted       = true
+
+  db_name                 = "bodima_db"
+  username                = "admin"
+  password                = "Admin200142"
+
+  publicly_accessible     = true
+  skip_final_snapshot     = true
 }
+
 
 resource "aws_instance" "backend_server" {
   ami           = "ami-0ff5003538b60d5ec"
