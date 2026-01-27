@@ -13,7 +13,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000") // React dev server URL
+@CrossOrigin(origins = "http://bodima-frontend.s3-website.ap-south-1.amazonaws.com")
+ // React dev server URL
 public class UserController {
 
     @Autowired

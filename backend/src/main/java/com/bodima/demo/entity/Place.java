@@ -36,6 +36,12 @@ public class Place {
     @Column(length = 50)
     private String ownerPhone;
 
+    @Column
+    private Double latitude;
+
+    @Column
+    private Double longitude;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -71,6 +77,10 @@ public class Place {
     public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
     public String getOwnerPhone() { return ownerPhone; }
     public void setOwnerPhone(String ownerPhone) { this.ownerPhone = ownerPhone; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public List<PlaceImage> getImages() { return images; }

@@ -1,10 +1,57 @@
-# --------------------------
-# Security Group
-# --------------------------
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_s3_bucket" "frontend_bucket" {
+  bucket = "bodima-frontend"
+}
+
+resource "aws_s3_bucket_acl" "frontend_acl" {
+  bucket = aws_s3_bucket.frontend_bucket.id
+  acl    = "public-read"
+}
+
+resource "aws_s3_bucket_website_configuration" "frontend_bucket_website" {
+  bucket = aws_s3_bucket.frontend_bucket.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
+  }
+}
+
+resource "aws_ecr_repository" "app_repo" {
+  name = "my-app-repo"
+}
+
+resource "aws_db_instance" "mysql_db" {
+  identifier         = "bodima-mysql"
+  engine             = "mysql"
+  instance_class     = "db.t3.micro"
+  allocated_storage  = 20
+  db_name            = "bodima_db"
+  username           = "admin"
+  password           = "Admin200142"
+  skip_final_snapshot = true
+  publicly_accessible = false
+}
+
+resource "aws_instance" "backend_server" {
+  ami           = "ami-0ff5003538b60d5ec"
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "backend-server"
+  }
+}
+
 resource "aws_security_group" "app_sg" {
   name        = "app-security-group"
   description = "Allow SSH, HTTP, and MySQL"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = "vpc-0f91e7512ae68c508"
 
   ingress {
     description = "Allow SSH"
@@ -31,7 +78,7 @@ resource "aws_security_group" "app_sg" {
   }
 
   ingress {
-    description = "Allow MySQL Access"
+    description = "Allow MySQL"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
@@ -49,43 +96,3 @@ resource "aws_security_group" "app_sg" {
     Name = "AppSecurityGroup"
   }
 }
-
-# --------------------------
-# EC2 Instance
-# --------------------------
-data "aws_vpc" "default" {
-  default = true
-}
-
-resource "aws_instance" "backend_server" {
-  ami                    = "ami-0a0f1259dd1c90938"
-  instance_type          = "t3.micro"
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
-
-  tags = {
-    Name = "SpringBoot-Backend"
-  }
-}
-
-# --------------------------
-# RDS MySQL Database
-# --------------------------
-resource "aws_db_instance" "mysql_db" {
-  identifier             = "bodima-mysql-db"
-  allocated_storage      = 20
-  storage_type           = "gp2"
-  engine                 = "mysql"
-  engine_version         = "8.0.42"   # <-- Use a valid version
-  instance_class         = "db.t3.micro"
-  username               = "admin"
-  password               = "password12345"
-  publicly_accessible    = true
-  skip_final_snapshot    = true
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
-
-  tags = {
-    Name = "Bodima-MySQL"
-  }
-}
-
-

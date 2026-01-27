@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:9090/api/places';
+const API_URL = import.meta.env.VITE_API_BASE_URL + '/api/places';
 
 // Your working createPlace: read once via res.text(), then attempt JSON.parse
 export const createPlace = async (formData) => {

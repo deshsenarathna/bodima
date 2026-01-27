@@ -24,6 +24,7 @@ public class PlaceService {
     public Place createPlaceWithImages(
             String title, String city, Integer capacity, Integer pricePerMonth,
             String description, String address, String ownerEmail, String ownerPhone,
+            Double latitude, Double longitude,
             MultipartFile[] images
     ) throws Exception {
         if (!Files.exists(UPLOAD_DIR)) Files.createDirectories(UPLOAD_DIR);
@@ -37,6 +38,8 @@ public class PlaceService {
         place.setAddress(address);
         place.setOwnerEmail(ownerEmail != null ? ownerEmail.trim() : null);
         place.setOwnerPhone(ownerPhone);
+        place.setLatitude(latitude);
+        place.setLongitude(longitude);
 
         // Handle uploaded images
         if (images != null) {
@@ -88,6 +91,8 @@ public class PlaceService {
                              String address,
                              String ownerEmail,
                              String ownerPhone,
+                             Double latitude,
+                             Double longitude,
                              MultipartFile[] images) throws Exception {
 
         Place place = placeRepository.findById(id)
@@ -105,6 +110,8 @@ public class PlaceService {
         if (description != null) place.setDescription(description);
         if (address != null) place.setAddress(address);
         if (ownerPhone != null) place.setOwnerPhone(ownerPhone);
+        if (latitude != null) place.setLatitude(latitude);
+        if (longitude != null) place.setLongitude(longitude);
 
         // Handle image upload if new images are provided
         if (images != null) {

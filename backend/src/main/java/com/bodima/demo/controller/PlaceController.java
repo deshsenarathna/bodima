@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+@CrossOrigin(origins = "http://bodima-frontend.s3-website.ap-south-1.amazonaws.com")
 @RestController
 @RequestMapping("/api/places")
 public class PlaceController {
@@ -29,10 +29,12 @@ public class PlaceController {
             @RequestParam(required = false) String address,
             @RequestParam(required = false) String ownerEmail,
             @RequestParam(required = false) String ownerPhone,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(name = "images", required = false) MultipartFile[] images
     ) throws Exception {
         return ResponseEntity.ok(placeService.createPlaceWithImages(
-                title, city, capacity, pricePerMonth, description, address, ownerEmail, ownerPhone, images
+                title, city, capacity, pricePerMonth, description, address, ownerEmail, ownerPhone, latitude, longitude, images
         ));
     }
 
@@ -58,10 +60,12 @@ public class PlaceController {
             @RequestParam(required = false) String address,
             @RequestParam(required = false) String ownerEmail,
             @RequestParam(required = false) String ownerPhone,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(name = "images", required = false) MultipartFile[] images
     ) throws Exception {
         return ResponseEntity.ok(placeService.updatePlace(
-                id, title, city, capacity, pricePerMonth, description, address, ownerEmail, ownerPhone, images
+                id, title, city, capacity, pricePerMonth, description, address, ownerEmail, ownerPhone, latitude, longitude, images
         ));
     }
 

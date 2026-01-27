@@ -1,7 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { createPlace } from "../services/placeService";
 import { useAuth } from "../hooks/useAuth";
+
+// Fix Leaflet marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+// Component to handle map clicks
+function LocationPicker({ onLocationSelect, selectedLocation }) {
+  useMapEvents({
+    click(e) {
+      onLocationSelect({
+        lat: e.latlng.lat,
+        lng: e.latlng.lng,
+      });
+    },
+  });
+  return selectedLocation ? (
+    <Marker position={[selectedLocation.lat, selectedLocation.lng]}>
+      <Popup>Selected Location</Popup>
+    </Marker>
+  ) : null;
+}
 
 export default function AddPlace() {
   const navigate = useNavigate();
@@ -14,10 +42,12 @@ export default function AddPlace() {
     capacity: "",
     pricePerMonth: "",
     description: "",
+    ownerPhone: "",
   });
 
   const [images, setImages] = useState([]);     // File[]
   const [previews, setPreviews] = useState([]); // string[]
+  const [selectedLocation, setSelectedLocation] = useState(null); // { lat, lng }
   const MAX_IMAGES = 8;
   const MAX_MB = 5;
 
@@ -65,6 +95,11 @@ export default function AddPlace() {
       fd.append("pricePerMonth", formData.pricePerMonth);
       fd.append("description", formData.description);
       if (ownerEmail) fd.append("ownerEmail", ownerEmail);
+      if (formData.ownerPhone) fd.append("ownerPhone", formData.ownerPhone);
+      if (selectedLocation) {
+        fd.append("latitude", selectedLocation.lat);
+        fd.append("longitude", selectedLocation.lng);
+      }
       images.forEach((file) => fd.append("images", file)); // multiple
 
       await createPlace(fd);
@@ -115,6 +150,42 @@ export default function AddPlace() {
                 className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400" required min="0" placeholder="15000"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Contact Number</label>
+            <input
+              type="tel" name="ownerPhone" value={formData.ownerPhone} onChange={handleChange}
+              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-400"
+              placeholder="+94 77 123 4567"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-2 font-medium">
+              Location on Map
+              <span className="ml-2 text-sm text-gray-500">(click on map to select location)</span>
+            </label>
+            <div className="bg-white rounded-lg border overflow-hidden">
+              <MapContainer
+                center={[6.9271, 80.7789]}
+                zoom={13}
+                style={{ height: "400px" }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <LocationPicker onLocationSelect={setSelectedLocation} selectedLocation={selectedLocation} />
+              </MapContainer>
+            </div>
+            {selectedLocation && (
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Location selected:</span> {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
