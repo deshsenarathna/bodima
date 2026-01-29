@@ -1,0 +1,20 @@
+---
+- name: Install dependencies
+  ansible.builtin.yum:
+    name:
+      - docker
+      - git
+    state: present
+
+- name: Enable and start Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Install docker compose plugin
+  ansible.builtin.get_url:
+    url: https://github.com/docker/compose/releases/download/v2.27.1/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'
+    force: true

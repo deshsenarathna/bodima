@@ -1,75 +1,24 @@
-provider "aws" {
-  region = "ap-south-1"
+# ECR repositories
+resource "aws_ecr_repository" "backend" {
+  name                 = "bodima-backend"
+  image_tag_mutability = "MUTABLE"
+  tags                 = var.tags
 }
 
-resource "aws_s3_bucket" "frontend_bucket" {
-  bucket = "bodima-frontend"
+resource "aws_ecr_repository" "frontend" {
+  name                 = "bodima-frontend"
+  image_tag_mutability = "MUTABLE"
+  tags                 = var.tags
 }
 
-resource "aws_s3_bucket_acl" "frontend_acl" {
-  bucket = aws_s3_bucket.frontend_bucket.id
-  acl    = "public-read"
-}
-
-resource "aws_s3_bucket_website_configuration" "frontend_bucket_website" {
-  bucket = aws_s3_bucket.frontend_bucket.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "index.html"
-  }
-}
-
-resource "aws_ecr_repository" "app_repo" {
-  name = "my-app-repo"
-}
-
-resource "aws_db_instance" "mysql_db" {
-  identifier              = "bodima-mysql"
-  engine                  = "mysql"
-  engine_version          = "8.4.7"
-  instance_class          = "db.t3.micro"
-
-  allocated_storage       = 400
-  max_allocated_storage   = 1000
-  storage_encrypted       = true
-
-  db_name                 = "bodima_db"
-  username                = "admin"
-  password                = "Admin200142"
-
-  publicly_accessible     = true
-  skip_final_snapshot     = true
-}
-
-
-resource "aws_instance" "backend_server" {
-  ami           = "ami-0ff5003538b60d5ec"
-  instance_type = "t3.micro"
-
-  tags = {
-    Name = "backend-server"
-  }
-}
-
+# Security group for app
 resource "aws_security_group" "app_sg" {
-  name        = "app-security-group"
-  description = "Allow SSH, HTTP, and MySQL"
-  vpc_id      = "vpc-0f91e7512ae68c508"
+  name        = "bodima-app-sg"
+  description = "Allow HTTP and backend ports"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "Allow SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Allow HTTP"
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -77,17 +26,9 @@ resource "aws_security_group" "app_sg" {
   }
 
   ingress {
-    description = "Allow Spring Boot Port"
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Allow MySQL"
-    from_port   = 3306
-    to_port     = 3306
+    description = "Backend 9090"
+    from_port   = 9090
+    to_port     = 9090
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -99,7 +40,54 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "AppSecurityGroup"
+  tags = var.tags
+}
+
+# Use default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
+}
+
+# Latest Amazon Linux 2 AMI
+data "aws_ami" "al2" {
+  owners      = ["137112412989"] # Amazon
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+# EC2 instance
+resource "aws_instance" "app" {
+  ami                    = data.aws_ami.al2.id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
+  subnet_id              = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+
+  tags = merge(var.tags, { name = "bodima-app" })
+
+  lifecycle {
+    ignore_changes = [ami]
+  }
+}
+
+output "ec2_public_ip" {
+  value = aws_instance.app.public_ip
+}
+
+output "ecr_backend_url" {
+  value = aws_ecr_repository.backend.repository_url
+}
+
+output "ecr_frontend_url" {
+  value = aws_ecr_repository.frontend.repository_url
 }
