@@ -2,3 +2,29 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
+
+# AWS CLI bundle accidentally committed/unzipped
+aws/
+awscliv2.zip
+
+# Java/Maven build outputs
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.mvn/wrapper/maven-wrapper.properties
+
+# Spring Boot local uploads/temp
+backend/uploads/
+backend/*.log
+
+# Node/Vite frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE/editor
+.vscode/
+.idea/
+
+# OS noise
+Thumbs.db
+Desktop.ini
