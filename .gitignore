@@ -1,30 +1,55 @@
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
+# === General ===
+.vscode/
+.idea/
+*.iml
+*.class
+*.log
+logs/
+.DS_Store
+Thumbs.db
+Desktop.ini
 
-# AWS CLI bundle accidentally committed/unzipped
-aws/
-awscliv2.zip
+# === Environment files ===
+.env
+.env.*
+*.env
+*.env.*
 
-# Java/Maven build outputs
-backend/target/
-backend/.mvn/wrapper/maven-wrapper.jar
-backend/.mvn/wrapper/maven-wrapper.properties
+# === Node/Vite (frontend and any JS tools) ===
+node_modules/
+dist/
+.vite/
+.eslintcache
+coverage/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
 
-# Spring Boot local uploads/temp
-backend/uploads/
-backend/*.log
-
-# Node/Vite frontend
+# Frontend subtree specifics (redundant with global patterns, kept for clarity)
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
-# IDE/editor
-.vscode/
-.idea/
+# === Java/Maven (backend) ===
+target/
+# Keep Maven wrapper files tracked per Maven recommendation
+# (do not ignore .mvn/wrapper/maven-wrapper.jar or properties)
 
-# OS noise
-Thumbs.db
-Desktop.ini
+# Spring Boot local runtime files
+backend/uploads/
+backend/*.log
+
+# === Terraform ===
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
+*.tfvars
+
+# === Ansible ===
+*.retry
+
+# === AWS CLI installer artifact only ===
+awscliv2.zip
