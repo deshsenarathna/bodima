@@ -21,7 +21,7 @@ pipeline {
 
     stage('Backend: Build') {
       steps {
-        sh 'cd backend && ./mvnw -B -DskipTests package'
+        sh 'cd backend && chmod +x mvnw && ./mvnw -B -DskipTests package'
       }
       post {
         failure { echo 'Backend build failed' }
