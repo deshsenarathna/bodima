@@ -12,8 +12,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     networks:
       - appnet
-    depends_on:
-      - mysql
 
   frontend:
     image: ${FRONTEND_IMAGE}
@@ -26,24 +24,7 @@ services:
     networks:
       - appnet
 
-  mysql:
-    image: mysql:8
-    container_name: bodima-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: bodima
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword
-    # Not exposing MySQL publicly; reachable to backend inside network
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - appnet
 
 networks:
   appnet:
     driver: bridge
-
-volumes:
-  mysql-data:
