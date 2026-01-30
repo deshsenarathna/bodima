@@ -9,7 +9,6 @@ pipeline {
     AWS_ACCOUNT_ID = credentials('aws-account-id')
     AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
     AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
-    ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
   }
 
   stages {
@@ -20,8 +19,12 @@ pipeline {
     }
 
     stage('Backend: Build') {
+      agent {
+        // Build backend with Maven + JDK 17 to satisfy java.version=17
+        docker { image 'maven:3.9.6-eclipse-temurin-17' }
+      }
       steps {
-        sh 'cd backend && chmod +x mvnw && ./mvnw -B -DskipTests package'
+        sh 'java -version && cd backend && chmod +x mvnw && ./mvnw -version && ./mvnw -B -DskipTests package'
       }
       post {
         failure { echo 'Backend build failed' }
@@ -40,15 +43,16 @@ pipeline {
     stage('ECR Login') {
       steps {
         sh 'aws --version || true'
-        sh 'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY'
+        sh 'aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com'
       }
     }
 
     stage('Docker Build & Push') {
       steps {
         script {
-          def backendTag = "$ECR_REGISTRY/$BACKEND_REPO:${env.BUILD_NUMBER}"
-          def frontendTag = "$ECR_REGISTRY/$FRONTEND_REPO:${env.BUILD_NUMBER}"
+          def registry = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_DEFAULT_REGION}.amazonaws.com"
+          def backendTag = "${registry}/${env.BACKEND_REPO}:${env.BUILD_NUMBER}"
+          def frontendTag = "${registry}/${env.FRONTEND_REPO}:${env.BUILD_NUMBER}"
 
           sh """
             # Create repos if missing
@@ -56,21 +60,21 @@ pipeline {
             aws ecr describe-repositories --repository-names $FRONTEND_REPO || aws ecr create-repository --repository-name $FRONTEND_REPO
 
             # Backend
-            docker build -t $backendTag -f backend/Dockerfile backend
-            docker push $backendTag
-            docker tag $backendTag $ECR_REGISTRY/$BACKEND_REPO:latest
-            docker push $ECR_REGISTRY/$BACKEND_REPO:latest
+            docker build -t ${backendTag} -f backend/Dockerfile backend
+            docker push ${backendTag}
+            docker tag ${backendTag} ${registry}/$BACKEND_REPO:latest
+            docker push ${registry}/$BACKEND_REPO:latest
 
             # Frontend (prod)
-            docker build --build-arg VITE_APP_BACKEND_ADDRESS=/api -t $frontendTag -f frontend/Dockerfile.prod frontend
-            docker push $frontendTag
-            docker tag $frontendTag $ECR_REGISTRY/$FRONTEND_REPO:latest
-            docker push $ECR_REGISTRY/$FRONTEND_REPO:latest
+            docker build --build-arg VITE_APP_BACKEND_ADDRESS=/api -t ${frontendTag} -f frontend/Dockerfile.prod frontend
+            docker push ${frontendTag}
+            docker tag ${frontendTag} ${registry}/$FRONTEND_REPO:latest
+            docker push ${registry}/$FRONTEND_REPO:latest
           """
 
           // Save tags for deploy
-          env.BACKEND_IMAGE = "$ECR_REGISTRY/$BACKEND_REPO:latest"
-          env.FRONTEND_IMAGE = "$ECR_REGISTRY/$FRONTEND_REPO:latest"
+          env.BACKEND_IMAGE = "${registry}/${env.BACKEND_REPO}:latest"
+          env.FRONTEND_IMAGE = "${registry}/${env.FRONTEND_REPO}:latest"
         }
       }
     }
