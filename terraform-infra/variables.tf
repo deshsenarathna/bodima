@@ -23,6 +23,11 @@ variable "tags" {
   }
 }
 
+variable "public_key" {
+  description = "SSH public key material to create AWS key pair (e.g., contents of ~/.ssh/id_rsa.pub)"
+  type        = string
+}
+
 variable "db_name" {
   description = "RDS database name"
   type        = string
