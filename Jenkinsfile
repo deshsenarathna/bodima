@@ -43,23 +43,24 @@ pipeline {
 
 
         stage('Frontend: Build') {
-            agent {
-                docker { 
-                    image 'node:20-alpine'
-                    args '--memory=2g -u 1000:1000' // limit memory for Node build
-                }
-            }
-            steps {
-                sh '''
-                    cd frontend
-                    npm ci
-                    npm run build
-                '''
-            }
-            post {
-                failure { echo 'Frontend build failed' }
-            }
+    agent {
+        docker {
+            image 'node:20-alpine'
+            args '--entrypoint="" --memory=2g -v $WORKSPACE:/app -w /app'
         }
+    }
+    steps {
+        sh '''
+            cd frontend
+            npm ci
+            npm run build
+        '''
+    }
+    post {
+        failure { echo 'Frontend build failed' }
+    }
+}
+
 
         stage('ECR Login') {
             steps {
