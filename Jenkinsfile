@@ -53,17 +53,21 @@ pipeline {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
     }
     steps {
+        // Ensure npm cache and node_modules are clean
         sh '''
             mkdir -p $NPM_CONFIG_CACHE
             cd frontend
+            rm -rf node_modules package-lock.json
             npm ci
             npm run build
         '''
     }
     post {
+        success { echo 'Frontend build succeeded' }
         failure { echo 'Frontend build failed' }
     }
 }
+
 
 
 
