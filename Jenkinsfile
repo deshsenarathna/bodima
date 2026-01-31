@@ -21,15 +21,18 @@ pipeline {
                 docker { image 'maven:3.9.6-eclipse-temurin-17' }
             }
             environment {
-                MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2"
+                // Ensure Maven does not try to use /.m2 inside container
+                HOME = "${WORKSPACE}"
+                MAVEN_CONFIG = "${WORKSPACE}/.m2"
+                MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository"
             }
             steps {
                 sh '''
                     java -version
-                    mkdir -p $WORKSPACE/.m2
+                    mkdir -p "$MAVEN_CONFIG"
                     cd backend
                     chmod +x mvnw
-                    ./mvnw -B -DskipTests package
+                    ./mvnw -B -DskipTests -Dmaven.repo.local="$MAVEN_CONFIG/repository" package
                 '''
             }
             post {
