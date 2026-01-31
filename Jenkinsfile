@@ -56,8 +56,7 @@ pipeline {
         sh '''
             mkdir -p $NPM_CONFIG_CACHE
             cd frontend
-            rm -rf node_modules package-lock.json
-            npm ci
+            npm install
             npm run build
         '''
     }
@@ -65,6 +64,7 @@ pipeline {
         failure { echo 'Frontend build failed' }
     }
 }
+
 
 
 
