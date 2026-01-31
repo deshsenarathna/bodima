@@ -46,11 +46,15 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--entrypoint="" --memory=2g -v $WORKSPACE:/app -w /app'
+            args '--entrypoint="" --memory=2g -u 1000:1000 -v $WORKSPACE:/app -w /app'
         }
+    }
+    environment {
+        NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
     }
     steps {
         sh '''
+            mkdir -p $NPM_CONFIG_CACHE
             cd frontend
             npm ci
             npm run build
@@ -60,6 +64,7 @@ pipeline {
         failure { echo 'Frontend build failed' }
     }
 }
+
 
 
         stage('ECR Login') {
