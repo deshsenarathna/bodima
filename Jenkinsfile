@@ -17,32 +17,30 @@ pipeline {
         }
 
         stage('Backend: Build') {
-            agent {
-                docker { 
-                    image 'maven:3.9.6-eclipse-temurin-17'
-                    args '--entrypoint="" --memory=4g -u 1000:1000' // disable ENTRYPOINT, limit memory & run as non-root
-                }
-            }
-            environment {
-                HOME = "${WORKSPACE}"
-                MAVEN_CONFIG = "${WORKSPACE}/.m2"
-                MAVEN_OPTS = "-Xmx2g -XX:MaxPermSize=512m -Dmaven.repo.local=${WORKSPACE}/.m2/repository"
-            }
-            steps {
-                sh '''
-                    echo "Starting backend build inside Maven container (ENTRYPOINT disabled)"
-                    java -version
-                    mkdir -p "$MAVEN_CONFIG/repository"
-                    chmod -R 777 "$MAVEN_CONFIG"
-                    cd backend
-                    chmod +x mvnw
-                    ./mvnw -B -DskipTests package
-                '''
-            }
-            post {
-                failure { echo 'Backend build failed' }
-            }
+    agent {
+        docker {
+            image 'maven:3.9.6-eclipse-temurin-17'
+            args '--entrypoint="" --memory=4g -v $WORKSPACE:/app -w /app'
         }
+    }
+    environment {
+        MAVEN_CONFIG = "${WORKSPACE}/.m2"
+    }
+    steps {
+        sh '''
+            echo "Starting backend build inside Maven container"
+            java -version
+            mkdir -p "$MAVEN_CONFIG/repository"
+            chmod -R 777 "$MAVEN_CONFIG"
+            cd backend
+            mvn -B -DskipTests clean package
+        '''
+    }
+    post {
+        failure { echo 'Backend build failed' }
+    }
+}
+
 
         stage('Frontend: Build') {
             agent {
