@@ -46,7 +46,7 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--entrypoint="" --memory=2g -u 1000:1000 -v $WORKSPACE:/app -w /app'
+            args '--entrypoint="" --memory=2g -u 1000:1000'
         }
     }
     environment {
@@ -64,6 +64,7 @@ pipeline {
         failure { echo 'Frontend build failed' }
     }
 }
+
 
 
 
