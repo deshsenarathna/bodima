@@ -46,14 +46,13 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--entrypoint="" --memory=2g -u 1000:1000'
+            args '--entrypoint="" --memory=2g'
         }
     }
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm"
     }
     steps {
-        // Ensure npm cache and node_modules are clean
         sh '''
             mkdir -p $NPM_CONFIG_CACHE
             cd frontend
@@ -63,7 +62,6 @@ pipeline {
         '''
     }
     post {
-        success { echo 'Frontend build succeeded' }
         failure { echo 'Frontend build failed' }
     }
 }
