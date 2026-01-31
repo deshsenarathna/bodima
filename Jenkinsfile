@@ -20,7 +20,7 @@ pipeline {
             agent {
                 docker { 
                     image 'maven:3.9.6-eclipse-temurin-17'
-                    args '--memory=4g -u 1000:1000' // limit memory & run as non-root
+                    args '--entrypoint="" --memory=4g -u 1000:1000' // disable ENTRYPOINT, limit memory & run as non-root
                 }
             }
             environment {
@@ -30,6 +30,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    echo "Starting backend build inside Maven container (ENTRYPOINT disabled)"
                     java -version
                     mkdir -p "$MAVEN_CONFIG/repository"
                     chmod -R 777 "$MAVEN_CONFIG"
