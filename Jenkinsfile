@@ -18,21 +18,24 @@ pipeline {
 
         stage('Backend: Build') {
             agent {
-                docker { image 'maven:3.9.6-eclipse-temurin-17' }
+                docker { 
+                    image 'maven:3.9.6-eclipse-temurin-17'
+                    args '--memory=4g -u 1000:1000' // limit memory & run as non-root
+                }
             }
             environment {
-                // Ensure Maven does not try to use /.m2 inside container
                 HOME = "${WORKSPACE}"
                 MAVEN_CONFIG = "${WORKSPACE}/.m2"
-                MAVEN_OPTS = "-Dmaven.repo.local=${WORKSPACE}/.m2/repository"
+                MAVEN_OPTS = "-Xmx2g -XX:MaxPermSize=512m -Dmaven.repo.local=${WORKSPACE}/.m2/repository"
             }
             steps {
                 sh '''
                     java -version
-                    mkdir -p "$MAVEN_CONFIG"
+                    mkdir -p "$MAVEN_CONFIG/repository"
+                    chmod -R 777 "$MAVEN_CONFIG"
                     cd backend
                     chmod +x mvnw
-                    ./mvnw -B -DskipTests -Dmaven.repo.local="$MAVEN_CONFIG/repository" package
+                    ./mvnw -B -DskipTests package
                 '''
             }
             post {
@@ -42,7 +45,10 @@ pipeline {
 
         stage('Frontend: Build') {
             agent {
-                docker { image 'node:20-alpine' }
+                docker { 
+                    image 'node:20-alpine'
+                    args '--memory=2g -u 1000:1000' // limit memory for Node build
+                }
             }
             steps {
                 sh '''
