@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://bodima-frontend.s3-website.ap-south-1.amazonaws.com")
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/places")
 public class PlaceController {
