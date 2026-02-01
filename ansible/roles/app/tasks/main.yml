@@ -7,8 +7,9 @@
 
 - name: Copy compose file
   ansible.builtin.copy:
-    src: ../../compose.prod.yml
+    src: "{{ playbook_dir }}/../compose.prod.yml"
     dest: /opt/bodima/compose.yml
+
 
 - name: Create env file
   ansible.builtin.copy:
