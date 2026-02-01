@@ -46,7 +46,7 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--entrypoint="" --memory=4g'
+            args '--entrypoint="" --memory=8g' // increased memory
         }
     }
     environment {
@@ -54,16 +54,22 @@ pipeline {
     }
     steps {
         sh '''
+            set -e  # fail immediately on error
             mkdir -p $NPM_CONFIG_CACHE
             cd frontend
-            npm install
-            npm run build
+
+            echo "Installing npm packages..."
+            npm install --legacy-peer-deps
+
+            echo "Running frontend build with verbose logging..."
+            npm run build -- --debug
         '''
     }
     post {
-        failure { echo 'Frontend build failed' }
+        failure { echo 'Frontend build failed ❌' }
     }
 }
+
 
 
 
