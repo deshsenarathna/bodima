@@ -130,15 +130,26 @@ stage('ECR Login') {
         }
 
         stage('Deploy with Ansible') {
-            steps {
-                sh """
-                    cd ansible
-                    ansible-playbook -i inventory.ini playbook.yml \
-                      -e backend_image=$BACKEND_IMAGE \
-                      -e frontend_image=$FRONTEND_IMAGE
-                """
-            }
+    steps {
+        withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-credentials', // your IAM user credentials in Jenkins
+            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+        ]]) {
+            sh """
+                cd ansible
+                ansible-playbook -i inventory.ini playbook.yml \
+                  -e backend_image=$BACKEND_IMAGE \
+                  -e frontend_image=$FRONTEND_IMAGE \
+                  -e aws_access_key=$AWS_ACCESS_KEY_ID \
+                  -e aws_secret_key=$AWS_SECRET_ACCESS_KEY \
+                  -e aws_region=$AWS_DEFAULT_REGION
+            """
         }
+    }
+}
+
     }
 
     post {
