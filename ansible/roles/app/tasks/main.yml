@@ -43,6 +43,6 @@
 - name: Deploy stack
   ansible.builtin.shell: |
     cd /opt/bodima
-    docker compose --env-file .env -f compose.yml up -d
+    docker-compose --env-file .env -f compose.yml up -d
   args:
     executable: /bin/bash
