@@ -46,7 +46,7 @@ pipeline {
     agent {
         docker {
             image 'node:20-alpine'
-            args '--entrypoint="" --memory=2g'
+            args '--entrypoint="" --memory=4g'
         }
     }
     environment {
