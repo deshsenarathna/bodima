@@ -81,7 +81,7 @@ stage('ECR Login') {
                 // Map the AWS Credential object to the standard AWS environment variables
                 withCredentials([[ 
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-access-key-id', // This ID must match Jenkins
+                    credentialsId: 'aws-credentials', // This ID must match Jenkins
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
@@ -98,7 +98,7 @@ stage('ECR Login') {
             steps {
                 withCredentials([[ 
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-access-key-id',
+                    credentialsId: 'aws-credentials',
                     accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                     secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
