@@ -76,11 +76,14 @@ pipeline {
 
 
 
-        stage('ECR Login') {
+stage('ECR Login') {
             steps {
+                // Map the AWS Credential object to the standard AWS environment variables
                 withCredentials([[ 
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-access-key-id'
+                    credentialsId: 'aws-access-key-id', // This ID must match Jenkins
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     sh '''
                         aws ecr get-login-password --region $AWS_DEFAULT_REGION | \
@@ -95,21 +98,26 @@ pipeline {
             steps {
                 withCredentials([[ 
                     $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-access-key-id'
+                    credentialsId: 'aws-access-key-id',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
                     script {
                         def registry = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
 
                         sh """
-                            aws ecr describe-repositories --repository-names $BACKEND_REPO || \
-                            aws ecr create-repository --repository-name $BACKEND_REPO
+                            # Ensure repositories exist
+                            aws ecr describe-repositories --repository-names $BACKEND_REPO --region $AWS_DEFAULT_REGION || \
+                            aws ecr create-repository --repository-name $BACKEND_REPO --region $AWS_DEFAULT_REGION
 
-                            aws ecr describe-repositories --repository-names $FRONTEND_REPO || \
-                            aws ecr create-repository --repository-name $FRONTEND_REPO
+                            aws ecr describe-repositories --repository-names $FRONTEND_REPO --region $AWS_DEFAULT_REGION || \
+                            aws ecr create-repository --repository-name $FRONTEND_REPO --region $AWS_DEFAULT_REGION
 
+                            # Build and Push Backend
                             docker build -t $registry/$BACKEND_REPO:latest backend
                             docker push $registry/$BACKEND_REPO:latest
 
+                            # Build and Push Frontend
                             docker build -t $registry/$FRONTEND_REPO:latest -f frontend/Dockerfile.prod frontend
                             docker push $registry/$FRONTEND_REPO:latest
                         """
