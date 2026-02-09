@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getPlace } from "../services/placeService";
+import { resolveImageUrl } from "../utils/imageURL.JS";
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,13 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-// Resolve relative /uploads/... URLs to the backend host
-function resolveImageUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  if (url.startsWith("/uploads/")) return `http://localhost:9090${url}`;
-  return url;
-}
+// Use shared resolver for /uploads/... URLs
 
 // Geocode address to coordinates using OpenStreetMap Nominatim
 async function geocodeAddress(address, city) {
