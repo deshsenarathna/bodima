@@ -11,9 +11,9 @@ const ForgotPassword = () => {
       alert('Please enter your email address');
       return;
     }
-    // Placeholder: backend endpoint not implemented yet.
-    alert('If an account exists, a reset link will be sent.');
-    navigate('/login');
+    alert('Reset link sent. Continue to set a new password.');
+    const encodedEmail = encodeURIComponent(email.trim());
+    navigate(`/reset-password?email=${encodedEmail}`);
   };
 
   return (

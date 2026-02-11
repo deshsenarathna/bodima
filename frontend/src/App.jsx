@@ -11,6 +11,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth.js';
 import PlaceDetails from './pages/PlaceDetails.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 
 function PrivateRoute({ children }) {
   const user = useAuth();
@@ -35,6 +36,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Listings */}
         <Route path="/search" element={<SearchResults />} />
