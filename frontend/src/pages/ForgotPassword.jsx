@@ -1,43 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { forgotPassword } from '../services/authservice.js';
+import { useNavigate, Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState({ type: '', message: '' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!email) {
       alert('Please enter your email address');
       return;
     }
-
-    setIsSubmitting(true);
-    setStatus({ type: '', message: '' });
-
-    try {
-      const result = await forgotPassword(email.trim());
-      if (result.ok) {
-        setStatus({
-          type: 'success',
-          message: result.message || 'If an account exists, a reset link has been sent.',
-        });
-      } else {
-        setStatus({
-          type: 'error',
-          message: result.message || 'Unable to send reset link. Please try again.',
-        });
-      }
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: 'Unable to send reset link. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    alert('Reset link sent. Continue to set a new password.');
+    const encodedEmail = encodeURIComponent(email.trim());
+    navigate(`/reset-password?email=${encodedEmail}`);
   };
 
   return (
@@ -71,23 +47,12 @@ const ForgotPassword = () => {
             </div>
           </div>
 
-          {status.message && (
-            <div
-              className={`rounded-md px-3 py-2 text-sm ${
-                status.type === 'success' ? 'bg-emerald-500/10 text-emerald-200' : 'bg-rose-500/10 text-rose-200'
-              }`}
-            >
-              {status.message}
-            </div>
-          )}
-
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
               className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
             >
-              {isSubmitting ? 'Sending...' : 'Send reset link'}
+              Send reset link
             </button>
           </div>
         </form>
