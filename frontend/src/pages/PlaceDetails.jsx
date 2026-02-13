@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getPlace } from "../services/placeService";
+import { deletePlace, getPlace } from "../services/placeService";
 import { resolveImageUrl } from "../utils/imageURL.JS";
+import { useAuth } from "../hooks/useAuth";
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,6 +42,10 @@ export default function PlaceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const placeId = Number(id);
+  const user = useAuth();
+  const myEmail = ((typeof user === "string" ? user : user?.email) || "")
+    .trim()
+    .toLowerCase();
 
   const [place, setPlace] = useState(null);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -97,6 +102,16 @@ export default function PlaceDetails() {
 
   if (!place) return null;
 
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      await deletePlace(placeId);
+      navigate("/search");
+    } catch (e) {
+      alert(e?.message || "Failed to delete place");
+    }
+  };
+
   const title = place.title || "Listing";
   const addressLine = [place.address, place.city].filter(Boolean).join(", ");
   const price = Number(place.pricePerMonth || 0);
@@ -117,6 +132,15 @@ export default function PlaceDetails() {
           >
             Listings
           </Link>
+          {place.ownerEmail?.toLowerCase() === myEmail && (
+            <button
+              onClick={handleDelete}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
+              type="button"
+            >
+              Delete Post
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
