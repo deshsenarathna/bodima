@@ -1,14 +1,16 @@
 package com.bodima.demo.controller;
 
+import com.bodima.demo.dto.ForgotPasswordRequest;
+import com.bodima.demo.dto.LoginRequest;
+import com.bodima.demo.dto.ResetPasswordRequest;
 import com.bodima.demo.entity.User;
-import com.bodima.demo.repositary.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bodima.demo.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -17,34 +19,42 @@ import java.util.Map;
  // React dev server URL
 public class UserController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final AuthService authService;
+
+    public UserController(AuthService authService) {
+        this.authService = authService;
+    }
 
     // Register
     @PostMapping("/register")
     public User registerUser(@RequestBody User user) {
-        // Hash the password before saving in production!
-        return userRepository.save(user);
+        return authService.registerUser(user);
     }
 
     // Login
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody User loginData) {
-        User user = userRepository.findByEmail(loginData.getEmail());
-
-        if (user != null && user.getPassword().equals(loginData.getPassword())) {
-            // Build response JSON
-            Map<String, Object> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("username", user.getUsername());
-            response.put("email", user.getEmail());
-
-            // Return success JSON
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginData) {
+        Map<String, Object> response = authService.login(loginData);
+        if (response != null) {
             return ResponseEntity.ok(response);
-        } else {
-            // Return error JSON
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.singletonMap("status", "Invalid credentials"));
         }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Collections.singletonMap("status", "Invalid credentials"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(Collections.singletonMap(
+                "message",
+                "If an account exists, a reset link has been sent."
+        ));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(Collections.singletonMap("message", "Password reset successful."));
     }
 }

@@ -17,8 +17,9 @@ const Login = () => {
 
     if (result?.ok) {
       // Persist username for header display
-      localStorage.setItem('user', email);
-      alert(`Welcome ${email}!`);
+      const displayEmail = result?.data?.email || email;
+      localStorage.setItem('user', displayEmail);
+      alert(`Welcome ${displayEmail}!`);
       navigate('/');
     } else {
       alert(result?.message || 'Login failed');
