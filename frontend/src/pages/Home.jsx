@@ -27,7 +27,7 @@ const Home = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 w-full">
           <div className="text-center mb-12">
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
-              Find Your Perfect <span className="text-blue-300">Boarding Plac</span>
+              Find Your Perfect <span className="text-blue-300">Boarding Place</span>
             </h1>
             <p className="text-xl text-gray-200 max-w-2xl mx-auto mb-2">
               Discover comfortable and affordable boarding options for students and working professionals
