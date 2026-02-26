@@ -134,6 +134,52 @@ stage('ECR Login') {
             }
         }
 
+        stage('Deploy to EC2') {
+    steps {
+        sshagent(credentials: ['ec2-ssh-key']) {
+            sh """
+                ssh -o StrictHostKeyChecking=no ec2-user@15.206.167.74 '
+                    set -e
+                    REG=612931695482.dkr.ecr.ap-south-1.amazonaws.com
+
+                    echo "Logging into ECR..."
+                    aws ecr get-login-password --region ap-south-1 | \
+                    docker login --username AWS --password-stdin \$REG
+
+                    echo "Creating Docker network if not exists..."
+                    docker network create bodima-net || true
+
+                    echo "Pulling latest images..."
+                    docker pull \$REG/bodima-backend:latest
+                    docker pull \$REG/bodima-frontend:latest
+
+                    echo "Stopping old containers..."
+                    docker rm -f bodima-frontend bodima-backend || true
+
+                    echo "Starting backend..."
+                    docker run -d --name bodima-backend \
+                      --network bodima-net \
+                      --restart unless-stopped \
+                      -p 9090:9090 \
+                      -e SPRING_DATASOURCE_URL="jdbc:mysql://bodima-db.c1wa8008eb0x.ap-south-1.rds.amazonaws.com:3306/bodima" \
+                      -e SPRING_DATASOURCE_USERNAME="admin" \
+                      -e SPRING_DATASOURCE_PASSWORD="Admin200142" \
+                      \$REG/bodima-backend:latest
+
+                    echo "Starting frontend..."
+                    docker run -d --name bodima-frontend \
+                      --network bodima-net \
+                      --restart unless-stopped \
+                      -p 80:80 \
+                      \$REG/bodima-frontend:latest
+
+                    echo "Deployment completed successfully 🚀"
+                '
+            """
+        }
+    }
+}
+
     }
 
     post {
