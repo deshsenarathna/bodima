@@ -23,7 +23,7 @@ const Header = () => {
           <div className="p-2 bg-blue-600 rounded-lg">
             <FaHome className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-semibold text-white">BoardEas</span>
+          <span className="text-xl font-semibold text-white">BoardEase</span>
         </div>
 
         {/* Center: Navigation Links */}
